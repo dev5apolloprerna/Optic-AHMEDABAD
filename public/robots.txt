@@ -1,0 +1,3 @@
+User-agent: *
+Allow: *
+Sitemap:https://opticexhibition.com/sitemap.xml

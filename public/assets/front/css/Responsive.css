@@ -1,0 +1,61 @@
+
+@media (max-width: 425px){
+    .mp-box {
+        height: 100%;
+        border: 1px solid #f37820;
+        border-radius: 4px;
+        margin: 20px 0px;
+        max-width: 100%;
+    }
+    
+    .sm-none{
+        display:none !important;
+    }
+    
+    .fa-stream:before {
+    content: "\f550";
+    color: white;
+  }
+  
+  .middle-bar{
+      flex-direction: column;
+  }
+
+.spo-logo{
+  display:flex;   
+}
+.spo-logo img{
+    width: 45% !important;
+}
+
+.head-menu-s {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    background: #efefef !important;
+    padding: 0px 15px;
+    color: orangered;
+    text-transform: capitalize;
+}
+
+.fr-head {
+    color: #0d6efd;
+    font-size: 18px;
+    font-weight: 700;
+    margin: 20px 0px;
+    text-transform: uppercase;
+}
+
+.sm-100{
+    width:100%;
+}
+.reg-f .d-flex{display:block!important;}
+ .reg-f .d-flex .w-45{width:100%!important;}
+ .floating-book{
+
+	top:250px!important;
+
+
+}
+}
+

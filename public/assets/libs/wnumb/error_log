@@ -1,0 +1,8 @@
+[21-Jun-2025 04:07:33 UTC] PHP Fatal error:  Uncaught Error: Undefined constant " " in /home2/paintq3w/opticexhibition.com/assets/libs/wnumb/gas.php:1
+Stack trace:
+#0 {main}
+  thrown in /home2/paintq3w/opticexhibition.com/assets/libs/wnumb/gas.php on line 1
+[08-Sep-2025 06:59:26 UTC] PHP Fatal error:  Uncaught Error: Undefined constant " " in /home2/paintq3w/opticexhibition.com/assets/libs/wnumb/gas.php:1
+Stack trace:
+#0 {main}
+  thrown in /home2/paintq3w/opticexhibition.com/assets/libs/wnumb/gas.php on line 1

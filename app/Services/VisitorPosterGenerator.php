@@ -78,7 +78,8 @@ class VisitorPosterGenerator
         for ($y = 520; $y < 1540; $y += 210) {
             for ($x = 40 + (($y / 210) % 2 ? 90 : 0); $x < 1080; $x += 270) {
                 $poster->ellipse(115, 55, (int) $x, $y, function ($shape) {
-                    $shape->border(5, 'rgba(55, 108, 175, 0.045)');
+                    // Intervention Image 2 does not accept CSS rgba() color strings.
+                    $shape->border(5, '#f4f7fb');
                 });
             }
         }

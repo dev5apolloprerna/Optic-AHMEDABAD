@@ -69,13 +69,14 @@ class VisitorPosterGenerator
 
     private function drawBackground(Image $poster): void
     {
-        $poster->rectangle(0, 0, 900, 450, function ($shape) {
+        $poster->rectangle(0, 0, 900, 280, function ($shape) {
             $shape->background(self::BLUE);
         });
 
-        // The large white circles produce the curved transition from the reference artwork.
-        $poster->circle(1320, 450, 980, function ($shape) {
-            $shape->background('#ffffff');
+        // Extend the blue header with a wide ellipse so its lower edge bows down
+        // behind the portrait, matching the symmetrical curve in the artwork.
+        $poster->ellipse(1100, 400, 450, 280, function ($shape) {
+            $shape->background(self::BLUE);
         });
 
         // A subtle spectacle pattern keeps the white area from looking empty.

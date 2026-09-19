@@ -25,8 +25,15 @@ use App\Http\Controllers\OurSponsorsController;
 use App\Http\Controllers\FloorPlanController;
 use App\Http\Controllers\EmployeesMasterController;
 use App\Http\Controllers\EmployeesVisitorRegistrationController;
+use App\Http\Controllers\VisitorPosterController;
 
 use App\Http\Controllers\BlogController;
+
+Route::get('/visitor-poster', [VisitorPosterController::class, 'index'])
+    ->name('visitor-poster.index');
+Route::post('/visitor-poster', [VisitorPosterController::class, 'generate'])
+    ->middleware('throttle:10,1')
+    ->name('visitor-poster.generate');
 /*
 |--------------------------------------------------------------------------
 | Web Routes

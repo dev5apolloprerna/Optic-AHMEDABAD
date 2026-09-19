@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Services\VisitorPosterGenerator;
 use Illuminate\Http\UploadedFile;
+use Intervention\Image\ImageManager;
 use ReflectionMethod;
+use ReflectionProperty;
 use Tests\TestCase;
 
 class VisitorPosterTest extends TestCase
@@ -47,5 +49,24 @@ class VisitorPosterTest extends TestCase
             'https://opticexhibition.com/Ahmedabad/visitor_registration',
             $method->invoke(new VisitorPosterGenerator())
         );
+    }
+    
+    public function test_blue_header_curve_bows_down_behind_the_portrait(): void
+    {
+        $generator = new VisitorPosterGenerator();
+        $manager = new ImageManager(['driver' => 'gd']);
+        $poster = $manager->canvas(900, 1600, '#ffffff');
+
+        $managerProperty = new ReflectionProperty(VisitorPosterGenerator::class, 'manager');
+        $managerProperty->setAccessible(true);
+        $managerProperty->setValue($generator, $manager);
+
+        $method = new ReflectionMethod(VisitorPosterGenerator::class, 'drawBackground');
+        $method->setAccessible(true);
+        $method->invoke($generator, $poster);
+
+        $this->assertSame([55, 108, 175], array_slice($poster->pickColor(450, 450, 'array'), 0, 3));
+        $this->assertSame([255, 255, 255], array_slice($poster->pickColor(20, 450, 'array'), 0, 3));
+        $this->assertSame([55, 108, 175], array_slice($poster->pickColor(20, 360, 'array'), 0, 3));
     }
 }

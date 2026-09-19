@@ -47,17 +47,18 @@ class VisitorPosterGenerator
             $this->addText($poster, '[ ' . $details . ' ]', 450, 1000, $boldFont, 28, self::BLUE);
         }
 
-        $this->addText($poster, 'SUPPORTED BY', 235, 1057, $boldFont, 15, '#111111');
-        $this->addText($poster, 'CO-SPONSORED BY', 680, 1057, $boldFont, 15, '#111111');
-        $this->insertContained($poster, public_path('assets/front/img/Optic-Expo-Asso.png'), 45, 1080, 380, 105);
-        $this->insertContained($poster, public_path('assets/front/img/Optic-Expo-Arise.png'), 570, 1075, 275, 110);
+        $this->addText($poster, 'SUPPORTED BY', 235, 1040, $boldFont, 15, '#111111');
+        $this->addText($poster, 'CO-SPONSORED BY', 680, 1040, $boldFont, 15, '#111111');
+        // Keep both sponsor marks above the QR area (which starts at y=1170).
+        $this->insertContained($poster, public_path('assets/front/img/Optic-Expo-Asso.png'), 45, 1055, 380, 105);
+        $this->insertContained($poster, public_path('assets/front/img/Optic-Expo-Arise.png'), 570, 1050, 275, 110);
 
         $poster->rectangle(0, 1218, 900, 1305, function ($shape) {
             $shape->background(self::BLUE);
         });
         $this->addText($poster, '»  REGISTER AND JOIN ME!', 155, 1262, $boldFont, 22, '#ffffff');
         $this->addText($poster, 'www.opticexhibition.com', 680, 1262, $boldFont, 18, '#ffffff');
-        $this->insertRegistrationQrCode($poster, 288, 1170, 190);   
+        $this->insertRegistrationQrCode($poster, 355, 1170, 190);
 
         $this->insertContained($poster, public_path('assets/front/img/optic-2024.png'), 35, 1360, 485, 160);
         $this->addText($poster, $this->eventDate(), 700, 1408, $boldFont, 25, '#111111');
@@ -129,9 +130,9 @@ class VisitorPosterGenerator
         // This is a call-to-action QR, not the visitor's registration-counter QR.
         // Generate it while composing the poster so it can never disappear because
         // an attendee-specific QR file is absent or stored in another public path.
-        $poster->rectangle($x - 5, $y - 5, $x + $size + 5, $y + $size + 5, function ($shape) {
+        $poster->rectangle($x, $y, $x + $size - 1, $y + $size - 1, function ($shape) {
             $shape->background('#ffffff');
-            $shape->border(6, self::BLUE);
+            // $shape->border(6, self::BLUE);
         });
 
         // Drawing BaconQrCode's matrix with Intervention keeps this compatible
@@ -141,11 +142,7 @@ class VisitorPosterGenerator
             ErrorCorrectionLevel::M(),
             'UTF-8'
         )->getMatrix();
-        $quietZone = 4;
-        $moduleSize = max(1, (int) floor($size / ($matrix->getWidth() + ($quietZone * 2))));
-        $qrSize = ($matrix->getWidth() + ($quietZone * 2)) * $moduleSize;
-        $offsetX = $x + (int) floor(($size - $qrSize) / 2) + ($quietZone * $moduleSize);
-        $offsetY = $y + (int) floor(($size - $qrSize) / 2) + ($quietZone * $moduleSize);
+        $matrixWidth = $matrix->getWidth();
 
         for ($row = 0; $row < $matrix->getHeight(); $row++) {
             for ($column = 0; $column < $matrix->getWidth(); $column++) {
@@ -153,12 +150,16 @@ class VisitorPosterGenerator
                     continue;
                 }
 
-                $left = $offsetX + ($column * $moduleSize);
-                $top = $offsetY + ($row * $moduleSize);
-                $poster->rectangle($left, $top, $left + $moduleSize - 1, $top + $moduleSize - 1, function ($shape) {
+                // Map the matrix directly to the requested square: no border or
+                // extra quiet-zone padding is added around the generated QR.
+                $left = $x + (int) floor(($column * $size) / $matrixWidth);
+                $top = $y + (int) floor(($row * $size) / $matrixWidth);
+                $right = $x + (int) floor((($column + 1) * $size) / $matrixWidth) - 1;
+                $bottom = $y + (int) floor((($row + 1) * $size) / $matrixWidth) - 1;
+                $poster->rectangle($left, $top, $right, $bottom, function ($shape) {
                     $shape->background('#000000');
                 });
-                }
+            }
         }
     }
 

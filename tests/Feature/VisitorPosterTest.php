@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Services\VisitorPosterGenerator;
 use Illuminate\Http\UploadedFile;
+use ReflectionMethod;
 use Tests\TestCase;
 
 class VisitorPosterTest extends TestCase
@@ -34,5 +36,16 @@ class VisitorPosterTest extends TestCase
             ])
             ->assertRedirect(route('visitor-poster.index'))
             ->assertSessionHasErrors(['mobile', 'photo']);
+    }
+
+    public function test_poster_qr_uses_the_ahmedabad_registration_link(): void
+    {
+        $method = new ReflectionMethod(VisitorPosterGenerator::class, 'registrationUrl');
+        $method->setAccessible(true);
+
+        $this->assertSame(
+            'https://opticexhibition.com/Ahmedabad/visitor_registration',
+            $method->invoke(new VisitorPosterGenerator())
+        );
     }
 }

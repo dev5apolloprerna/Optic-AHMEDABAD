@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Visitor;
 use Intervention\Image\Image;
 use Intervention\Image\ImageManager;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class VisitorPosterGenerator
 {
@@ -53,9 +54,9 @@ class VisitorPosterGenerator
         $poster->rectangle(0, 1218, 900, 1305, function ($shape) {
             $shape->background(self::BLUE);
         });
-        $this->addText($poster, '»  REGISTER AND JOIN ME!', 200, 1262, $boldFont, 22, '#ffffff');
+        $this->addText($poster, '»  REGISTER AND JOIN ME!', 155, 1262, $boldFont, 22, '#ffffff');
         $this->addText($poster, 'www.opticexhibition.com', 680, 1262, $boldFont, 18, '#ffffff');
-        $this->insertVisitorQrCode($poster, $visitor, 342, 1165, 155);
+        $this->insertRegistrationQrCode($poster, 288, 1170, 190);   
 
         $this->insertContained($poster, public_path('assets/front/img/optic-2024.png'), 35, 1360, 485, 160);
         $this->addText($poster, $this->eventDate(), 700, 1408, $boldFont, 25, '#111111');
@@ -121,27 +122,29 @@ class VisitorPosterGenerator
         $poster->insert($logo, 'top-left', $x + (int) (($width - $logo->width()) / 2), $y + (int) (($height - $logo->height()) / 2));
     }
 
-    private function insertVisitorQrCode(Image $poster, Visitor $visitor, int $x, int $y, int $size): void
+    private function insertRegistrationQrCode(Image $poster, int $x, int $y, int $size): void
     {
-        $fileName = 'visitor_' . $visitor->getKey() . '.png';
-        $paths = [
-            public_path('qrcodes/' . $fileName),
-            public_path('Ahmedabad/qrcodes/' . $fileName),
-            public_path('../Ahmedabad/qrcodes/' . $fileName),
-        ];
+        // This is a call-to-action QR, not the visitor's registration-counter QR.
+        // Generate it while composing the poster so it can never disappear because
+        // an attendee-specific QR file is absent or stored in another public path.
+        $qrImage = (string) QrCode::format('png')
+            ->size($size)
+            ->margin(1)
+            ->errorCorrection('M')
+            ->generate($this->registrationUrl());
 
-        foreach ($paths as $path) {
-            if (is_file($path)) {
-                $qrCode = $this->manager->make($path)->fit($size, $size);
-                $poster->rectangle($x - 8, $y - 8, $x + $size + 8, $y + $size + 8, function ($shape) {
-                    $shape->background('#ffffff');
-                    $shape->border(5, self::BLUE);
-                });
-                $poster->insert($qrCode, 'top-left', $x, $y);
-
-                return;
-            }
-        }
+        $qrCode = $this->manager->make($qrImage)->fit($size, $size);
+        $poster->rectangle($x - 10, $y - 10, $x + $size + 10, $y + $size + 10, function ($shape) {
+            $shape->background('#ffffff');
+            $shape->border(6, self::BLUE);
+        });
+        $poster->insert($qrCode, 'top-left', $x, $y);
+    }
+    
+    private function registrationUrl(): string
+    {
+        return (string) (config('app.visitor_registration_url')
+            ?: 'https://opticexhibition.com/Ahmedabad/visitor_registration');
     }
 
     private function addText(Image $image, string $text, int $x, int $y, string $font, int $size, string $color): void

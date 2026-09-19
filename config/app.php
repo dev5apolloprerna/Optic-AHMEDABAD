@@ -16,6 +16,10 @@ return [
     'name' => env('APP_NAME', 'Laravel'),
     'site_venue' => env('SITE_VENUE'),
     'front_header_date' => env('FRONT_HEADER_DATE'),
+    'visitor_registration_url' => env(
+        'VISITOR_REGISTRATION_URL',
+        'https://opticexhibition.com/Ahmedabad/visitor_registration'
+    ),
     'visitor_date1' => env('VISITOR_DATE1'),
     'visitor_date2' => env('VISITOR_DATE2'),
     'visitor_date3' => env('VISITOR_DATE3'),

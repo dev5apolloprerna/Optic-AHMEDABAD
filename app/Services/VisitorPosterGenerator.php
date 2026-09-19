@@ -3,9 +3,10 @@
 namespace App\Services;
 
 use App\Models\Visitor;
+use BaconQrCode\Common\ErrorCorrectionLevel;
+use BaconQrCode\Encoder\Encoder;
 use Intervention\Image\Image;
 use Intervention\Image\ImageManager;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class VisitorPosterGenerator
 {
@@ -127,20 +128,39 @@ class VisitorPosterGenerator
         // This is a call-to-action QR, not the visitor's registration-counter QR.
         // Generate it while composing the poster so it can never disappear because
         // an attendee-specific QR file is absent or stored in another public path.
-        $qrImage = (string) QrCode::format('png')
-            ->size($size)
-            ->margin(1)
-            ->errorCorrection('M')
-            ->generate($this->registrationUrl());
-
-        $qrCode = $this->manager->make($qrImage)->fit($size, $size);
-        $poster->rectangle($x - 10, $y - 10, $x + $size + 10, $y + $size + 10, function ($shape) {
+        $poster->rectangle($x - 5, $y - 5, $x + $size + 5, $y + $size + 5, function ($shape) {
             $shape->background('#ffffff');
             $shape->border(6, self::BLUE);
         });
-        $poster->insert($qrCode, 'top-left', $x, $y);
+
+        // Drawing BaconQrCode's matrix with Intervention keeps this compatible
+        // with the application's GD driver; the PNG backend requires Imagick.
+        $matrix = Encoder::encode(
+            $this->registrationUrl(),
+            ErrorCorrectionLevel::M(),
+            'UTF-8'
+        )->getMatrix();
+        $quietZone = 4;
+        $moduleSize = max(1, (int) floor($size / ($matrix->getWidth() + ($quietZone * 2))));
+        $qrSize = ($matrix->getWidth() + ($quietZone * 2)) * $moduleSize;
+        $offsetX = $x + (int) floor(($size - $qrSize) / 2) + ($quietZone * $moduleSize);
+        $offsetY = $y + (int) floor(($size - $qrSize) / 2) + ($quietZone * $moduleSize);
+
+        for ($row = 0; $row < $matrix->getHeight(); $row++) {
+            for ($column = 0; $column < $matrix->getWidth(); $column++) {
+                if ($matrix->get($column, $row) !== 1) {
+                    continue;
+                }
+
+                $left = $offsetX + ($column * $moduleSize);
+                $top = $offsetY + ($row * $moduleSize);
+                $poster->rectangle($left, $top, $left + $moduleSize - 1, $top + $moduleSize - 1, function ($shape) {
+                    $shape->background('#000000');
+                });
+                }
+        }
     }
-    
+
     private function registrationUrl(): string
     {
         return (string) (config('app.visitor_registration_url')

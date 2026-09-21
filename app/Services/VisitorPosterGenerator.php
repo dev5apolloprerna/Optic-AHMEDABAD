@@ -56,8 +56,8 @@ class VisitorPosterGenerator
         $this->addText($poster, 'SUPPORTED BY', 235, 1040, $boldFont, 15, '#111111');
         $this->addText($poster, 'CO-SPONSORED BY', 680, 1040, $boldFont, 15, '#111111');
         // Keep both sponsor marks above the QR area (which starts at y=1170).
-        $this->insertContained($poster, $this->assetPath('assets/front/img/Optic-Expo-Asso.png'), 45, 1055, 380, 105);
-        $this->insertContained($poster, $this->assetPath('assets/front/img/Optic-Expo-Arise.png'), 570, 1050, 275, 110);
+        $this->insertContained($poster, $this->assetPath('Ahmedabad/assets/front/img/Optic-Expo-Asso.png'), 45, 1055, 380, 105);
+        $this->insertContained($poster, $this->assetPath('Ahmedabad/assets/front/img/Optic-Expo-Arise.png'), 570, 1050, 275, 110);
 
         $poster->rectangle(0, 1218, 900, 1305, function ($shape) {
             $shape->background(self::BLUE);
@@ -72,7 +72,7 @@ class VisitorPosterGenerator
             self::QR_SIZE
         );
 
-        $this->insertContained($poster, $this->assetPath('assets/front/img/optic-2024.png'), 35, 1360, 485, 160);
+        $this->insertContained($poster, $this->assetPath('Ahmedabad/assets/front/img/optic-2024.png'), 35, 1360, 485, 160);
         $this->addText($poster, $this->eventDate(), 700, 1408, $boldFont, 25, '#111111');
         $this->addText($poster, 'AHMEDABAD', 700, 1462, $boldFont, 31, self::BLUE);
         $this->addText($poster, $this->eventVenue(), 450, 1560, $boldFont, 21, '#111111');

@@ -38,8 +38,8 @@ class VisitorPosterGenerator
 
             throw new \RuntimeException('Poster asset is missing or unreadable: '.$relativePath);
         };
-        $boldFont = $assetPath('fonts/Montserrat-Bold.ttf');
-        $regularFont = $assetPath('fonts/Montserrat-Regular.ttf');
+        $boldFont = $assetPath('Ahmedabad/fonts/Montserrat-Bold.ttf');
+        $regularFont = $assetPath('Ahmedabad/fonts/Montserrat-Regular.ttf');
 
         $this->drawBackground($poster);
         $this->addText($poster, "I'M COMING TO OPTIC EXPO,", 450, 67, $regularFont, 38, '#ffffff');

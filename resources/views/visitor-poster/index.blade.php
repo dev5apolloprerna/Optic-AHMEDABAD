@@ -178,8 +178,100 @@
         box-shadow: 0 0 0 4px rgba(31, 92, 169, .1);
     }
 
-    .visitor-poster-form input[type='file'] {
-        padding: 12px;
+    .photo-upload {
+        position: relative;
+    }
+
+    .photo-upload-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .photo-upload-box {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-height: 82px;
+        margin: 0;
+        padding: 14px 16px;
+        border: 1.5px dashed #b8c8da;
+        border-radius: 12px;
+        background: #f8fbff;
+        cursor: pointer;
+        transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
+    }
+
+    .photo-upload-box:hover,
+    .photo-upload:focus-within .photo-upload-box {
+        border-color: #1f5ca9;
+        background: #f2f7fd;
+        box-shadow: 0 0 0 4px rgba(31, 92, 169, .08);
+    }
+
+    .photo-upload-icon {
+        display: inline-flex;
+        flex: 0 0 46px;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        height: 46px;
+        border-radius: 11px;
+        background: rgba(31, 92, 169, .1);
+        color: #1f5ca9;
+        font-size: 19px;
+    }
+
+    .photo-upload-copy {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .photo-upload-title,
+    .photo-upload-name {
+        display: block;
+    }
+
+    .photo-upload-title {
+        margin-bottom: 3px;
+        color: #173f70;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .photo-upload-name {
+        overflow: hidden;
+        color: #7b8a9b;
+        font-size: 12px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .photo-upload-action {
+        flex: 0 0 auto;
+        padding: 9px 13px;
+        border-radius: 8px;
+        background: #1f5ca9;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .photo-upload.has-file .photo-upload-box {
+        border-color: #39a16c;
+        background: #f4fbf7;
+    }
+
+    .photo-upload.has-file .photo-upload-icon {
+        background: rgba(57, 161, 108, .12);
+        color: #278354;
+    }
+
+    .photo-upload.is-invalid .photo-upload-box {
+        border-color: #dc3545;
     }
 
     .visitor-poster-form .form-text {
@@ -253,6 +345,10 @@
         .visitor-poster-form {
             padding: 34px 24px;
         }
+
+        .photo-upload-action {
+            display: none;
+        }
     }
 </style>
 
@@ -299,7 +395,17 @@
 
                         <div class="mb-4">
                             <label class="form-label" for="photo">Upload your photo</label>
-                            <input class="form-control @error('photo') is-invalid @enderror" id="photo" name="photo" type="file" accept="image/jpeg,image/png" required>
+                            <div class="photo-upload @error('photo') is-invalid @enderror" id="photoUpload">
+                                <input class="photo-upload-input" id="photo" name="photo" type="file" accept="image/jpeg,image/png" required>
+                                <label class="photo-upload-box" for="photo">
+                                    <span class="photo-upload-icon"><i class="fas fa-cloud-upload-alt"></i></span>
+                                    <span class="photo-upload-copy">
+                                        <span class="photo-upload-title">Choose your best photo</span>
+                                        <span class="photo-upload-name" id="photoFileName">No file selected</span>
+                                    </span>
+                                    <span class="photo-upload-action">Browse</span>
+                                </label>
+                            </div>
                             <div class="form-text">JPG or PNG, maximum 5 MB. A square or portrait photo works best.</div>
                             @error('photo') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
@@ -313,4 +419,18 @@
         </div>
     </div>
 </section>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const photoInput = document.getElementById('photo');
+        const photoUpload = document.getElementById('photoUpload');
+        const photoFileName = document.getElementById('photoFileName');
+
+        photoInput.addEventListener('change', function() {
+            const selectedFile = photoInput.files && photoInput.files[0];
+
+            photoFileName.textContent = selectedFile ? selectedFile.name : 'No file selected';
+            photoUpload.classList.toggle('has-file', Boolean(selectedFile));
+        });
+    });
+</script>
 @endsection

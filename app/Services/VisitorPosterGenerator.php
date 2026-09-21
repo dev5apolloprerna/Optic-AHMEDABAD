@@ -11,6 +11,9 @@ use Intervention\Image\ImageManager;
 class VisitorPosterGenerator
 {
     private const BLUE = '#376caf';
+    private const POSTER_WIDTH = 900;
+    private const QR_BORDER = 7;
+    private const QR_SIZE = 190;
 
     /** @var ImageManager */
     private $manager;
@@ -19,9 +22,24 @@ class VisitorPosterGenerator
     {
         $this->manager = new ImageManager(['driver' => config('image.driver', 'gd')]);
         // Match the supplied artwork's 9:16 portrait size exactly.
-        $poster = $this->manager->canvas(900, 1600, '#ffffff');
-        $boldFont = public_path('fonts/Montserrat-Bold.ttf');
-        $regularFont = public_path('fonts/Montserrat-Regular.ttf');
+        // $poster = $this->manager->canvas(self::POSTER_WIDTH, 1600, '#ffffff');
+        // $boldFont = 'https://opticexhibition.com/Ahmedabad/fonts/Montserrat-Bold.ttf';
+        // $regularFont = 'https://opticexhibition.com/Ahmedabad/fonts/Montserrat-Regular.ttf';
+        $poster = $this->manager->canvas(self::POSTER_WIDTH, 1600, '#ffffff');
+        // cPanel deployments may expose the contents of /public directly from the
+        // project root. Resolve assets here so this cannot become an undefined
+        // method when a single service file is deployed through File Manager.
+        $assetPath = static function (string $relativePath): string {
+            foreach ([public_path($relativePath), base_path($relativePath)] as $candidate) {
+                if (is_file($candidate) && is_readable($candidate)) {
+                    return $candidate;
+                }
+            }
+
+            throw new \RuntimeException('Poster asset is missing or unreadable: '.$relativePath);
+        };
+        $boldFont = $assetPath('fonts/Montserrat-Bold.ttf');
+        $regularFont = $assetPath('fonts/Montserrat-Regular.ttf');
 
         $this->drawBackground($poster);
         $this->addText($poster, "I'M COMING TO OPTIC EXPO,", 450, 67, $regularFont, 38, '#ffffff');
@@ -40,7 +58,7 @@ class VisitorPosterGenerator
         $city = $this->limit(strtoupper((string) $visitor->city), 24);
 
         $this->addText($poster, 'PROUD VISITOR', 450, 890, $boldFont, 38, '#111111');
-        $this->addText($poster, 'MR. ' . ($name ?: 'VALUED VISITOR'), 450, 943, $boldFont, 35, '#111111');
+        $this->addText($poster,  ($name ?: 'VALUED VISITOR'), 450, 943, $boldFont, 35, '#111111');
 
         $details = implode(', ', array_filter([$company, $city]));
         if ($details !== '') {
@@ -50,17 +68,23 @@ class VisitorPosterGenerator
         $this->addText($poster, 'SUPPORTED BY', 235, 1040, $boldFont, 15, '#111111');
         $this->addText($poster, 'CO-SPONSORED BY', 680, 1040, $boldFont, 15, '#111111');
         // Keep both sponsor marks above the QR area (which starts at y=1170).
-        $this->insertContained($poster, public_path('assets/front/img/Optic-Expo-Asso.png'), 45, 1055, 380, 105);
-        $this->insertContained($poster, public_path('assets/front/img/Optic-Expo-Arise.png'), 570, 1050, 275, 110);
+        $this->insertContained($poster, $assetPath('assets/front/img/Optic-Expo-Asso.png'), 45, 1055, 380, 105);
+        $this->insertContained($poster, $assetPath('assets/front/img/Optic-Expo-Arise.png'), 570, 1050, 275, 110);
 
         $poster->rectangle(0, 1218, 900, 1305, function ($shape) {
             $shape->background(self::BLUE);
         });
-        $this->addText($poster, '»  REGISTER AND JOIN ME!', 155, 1262, $boldFont, 22, '#ffffff');
-        $this->addText($poster, 'www.opticexhibition.com', 680, 1262, $boldFont, 18, '#ffffff');
-        $this->insertRegistrationQrCode($poster, 355, 1170, 190);
+        $this->addText($poster, '» REGISTER AND JOIN ME!', 155, 1262, $boldFont, 22, '#ffffff');
+        $this->addText($poster, '
+        www.opticexhibition.com', 680, 1262, $boldFont, 18, '#ffffff');
+        $this->insertRegistrationQrCode(
+            $poster,
+            (int) ((self::POSTER_WIDTH - self::QR_SIZE) / 2),
+            1170,
+            self::QR_SIZE
+        );
 
-        $this->insertContained($poster, public_path('assets/front/img/optic-2024.png'), 35, 1360, 485, 160);
+        $this->insertContained($poster, $assetPath('assets/front/img/optic-2024.png'), 35, 1360, 485, 160);
         $this->addText($poster, $this->eventDate(), 700, 1408, $boldFont, 25, '#111111');
         $this->addText($poster, 'AHMEDABAD', 700, 1462, $boldFont, 31, self::BLUE);
         $this->addText($poster, $this->eventVenue(), 450, 1560, $boldFont, 21, '#111111');
@@ -130,6 +154,17 @@ class VisitorPosterGenerator
         // This is a call-to-action QR, not the visitor's registration-counter QR.
         // Generate it while composing the poster so it can never disappear because
         // an attendee-specific QR file is absent or stored in another public path.
+        // Draw the reference artwork's blue frame outside the QR bounds. The QR
+        // itself still fills the complete requested square without inner padding.
+        $poster->rectangle(
+            $x - self::QR_BORDER,
+            $y - self::QR_BORDER,
+            $x + $size + self::QR_BORDER - 1,
+            $y + $size + self::QR_BORDER - 1,
+            function ($shape) {
+                $shape->background(self::BLUE);
+            }
+        );
         $poster->rectangle($x, $y, $x + $size - 1, $y + $size - 1, function ($shape) {
             $shape->background('#ffffff');
             // $shape->border(6, self::BLUE);

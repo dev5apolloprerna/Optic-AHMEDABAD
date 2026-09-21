@@ -51,6 +51,38 @@ class VisitorPosterTest extends TestCase
         );
     }
     
+    public function test_poster_assets_can_be_loaded_from_the_web_document_root(): void
+    {
+        $documentRoot = sys_get_temp_dir().'/visitor-poster-'.uniqid('', true);
+        $fontPath = $documentRoot.'/Ahmedabad/fonts/Montserrat-Bold.ttf';
+        mkdir(dirname($fontPath), 0777, true);
+        file_put_contents($fontPath, 'font');
+
+        $originalDocumentRoot = $_SERVER['DOCUMENT_ROOT'] ?? null;
+        $_SERVER['DOCUMENT_ROOT'] = $documentRoot;
+
+        try {
+            $method = new ReflectionMethod(VisitorPosterGenerator::class, 'assetPath');
+            $method->setAccessible(true);
+
+            $this->assertSame(
+                $fontPath,
+                $method->invoke(new VisitorPosterGenerator(), 'Ahmedabad/fonts/Montserrat-Bold.ttf')
+            );
+        } finally {
+            if ($originalDocumentRoot === null) {
+                unset($_SERVER['DOCUMENT_ROOT']);
+            } else {
+                $_SERVER['DOCUMENT_ROOT'] = $originalDocumentRoot;
+            }
+
+            unlink($fontPath);
+            rmdir(dirname($fontPath));
+            rmdir(dirname(dirname($fontPath)));
+            rmdir($documentRoot);
+        }
+    }
+    
     public function test_blue_header_curve_bows_down_behind_the_portrait(): void
     {
         $generator = new VisitorPosterGenerator();

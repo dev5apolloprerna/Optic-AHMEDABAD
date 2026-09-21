@@ -26,20 +26,8 @@ class VisitorPosterGenerator
         // $boldFont = 'https://opticexhibition.com/Ahmedabad/fonts/Montserrat-Bold.ttf';
         // $regularFont = 'https://opticexhibition.com/Ahmedabad/fonts/Montserrat-Regular.ttf';
         $poster = $this->manager->canvas(self::POSTER_WIDTH, 1600, '#ffffff');
-        // cPanel deployments may expose the contents of /public directly from the
-        // project root. Resolve assets here so this cannot become an undefined
-        // method when a single service file is deployed through File Manager.
-        $assetPath = static function (string $relativePath): string {
-            foreach ([public_path($relativePath), base_path($relativePath)] as $candidate) {
-                if (is_file($candidate) && is_readable($candidate)) {
-                    return $candidate;
-                }
-            }
-
-            throw new \RuntimeException('Poster asset is missing or unreadable: '.$relativePath);
-        };
-        $boldFont = $assetPath('Ahmedabad/fonts/Montserrat-Bold.ttf');
-        $regularFont = $assetPath('Ahmedabad/fonts/Montserrat-Regular.ttf');
+        $boldFont = $this->assetPath('Ahmedabad/fonts/Montserrat-Bold.ttf');
+        $regularFont = $this->assetPath('Ahmedabad/fonts/Montserrat-Regular.ttf');
 
         $this->drawBackground($poster);
         $this->addText($poster, "I'M COMING TO OPTIC EXPO,", 450, 67, $regularFont, 38, '#ffffff');
@@ -68,8 +56,8 @@ class VisitorPosterGenerator
         $this->addText($poster, 'SUPPORTED BY', 235, 1040, $boldFont, 15, '#111111');
         $this->addText($poster, 'CO-SPONSORED BY', 680, 1040, $boldFont, 15, '#111111');
         // Keep both sponsor marks above the QR area (which starts at y=1170).
-        $this->insertContained($poster, $assetPath('assets/front/img/Optic-Expo-Asso.png'), 45, 1055, 380, 105);
-        $this->insertContained($poster, $assetPath('assets/front/img/Optic-Expo-Arise.png'), 570, 1050, 275, 110);
+        $this->insertContained($poster, $this->assetPath('assets/front/img/Optic-Expo-Asso.png'), 45, 1055, 380, 105);
+        $this->insertContained($poster, $this->assetPath('assets/front/img/Optic-Expo-Arise.png'), 570, 1050, 275, 110);
 
         $poster->rectangle(0, 1218, 900, 1305, function ($shape) {
             $shape->background(self::BLUE);
@@ -84,7 +72,7 @@ class VisitorPosterGenerator
             self::QR_SIZE
         );
 
-        $this->insertContained($poster, $assetPath('assets/front/img/optic-2024.png'), 35, 1360, 485, 160);
+        $this->insertContained($poster, $this->assetPath('assets/front/img/optic-2024.png'), 35, 1360, 485, 160);
         $this->addText($poster, $this->eventDate(), 700, 1408, $boldFont, 25, '#111111');
         $this->addText($poster, 'AHMEDABAD', 700, 1462, $boldFont, 31, self::BLUE);
         $this->addText($poster, $this->eventVenue(), 450, 1560, $boldFont, 21, '#111111');
@@ -92,6 +80,31 @@ class VisitorPosterGenerator
         return (string) $poster->encode('jpg', 94);
     }
 
+    private function assetPath(string $relativePath): string
+    {
+        $relativePath = ltrim($relativePath, '/\\');
+        $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? null;
+        $candidates = [
+            public_path($relativePath),
+            base_path($relativePath),
+        ];
+
+        // On cPanel the Laravel project can live outside the domain's document
+        // root. Fonts uploaded to opticexhibition.com/Ahmedabad/fonts therefore
+        // need to be resolved from the web root rather than the project folder.
+        if (is_string($documentRoot) && $documentRoot !== '') {
+            $candidates[] = rtrim($documentRoot, '/\\').DIRECTORY_SEPARATOR.$relativePath;
+        }
+
+        foreach (array_unique($candidates) as $candidate) {
+            if (is_file($candidate) && is_readable($candidate)) {
+                return $candidate;
+            }
+        }
+
+        throw new \RuntimeException('Poster asset is missing or unreadable: '.$relativePath);
+    }
+    
     private function drawBackground(Image $poster): void
     {
         $poster->rectangle(0, 0, 900, 280, function ($shape) {
